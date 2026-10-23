@@ -1,19 +1,18 @@
 ﻿using System.ComponentModel.Design;
 
-Console.WriteLine("Hello, World!");
-Dictionary<string, int> clientes = new Dictionary<string, int>()
+List <Cliente> clientes = new List<Cliente>()
 {
-    ["Vinicius"] = 123456789,
-    ["Matheus"] = 987654321
+    new Cliente("Vinicius", "123456789", "vinicius@email.com", "Engenheiro", "1234567890", new Endereco("Centro", "São Paulo", "Apto 101", 123, "Rua Exemplo", "SP")),
+    new Cliente("Matheus", "987654321", "matheus@email.com", "Designer", "0987654321", new Endereco("Jardim", "São Paulo", "Casa 10", 456, "Rua Exemplo", "SP"))
 };
-Dictionary<string, int> produtos = new Dictionary<string, int>()
-{
-    ["Alexa"] = 50000,
-    ["Pc Gamer"] = 250000,
-    ["Celular"] = 150000
-};
-Dictionary<string, Dictionary<string, int>> carrinho = new Dictionary<string, Dictionary<string, int>>();
 
+List <Produto> produtos = new List<Produto>()  
+{
+    new Produto("Produto A", "Descrição do Produto A", 10.99f, 100),
+    new Produto("Produto B", "Descrição do Produto B", 15.99f, 50),
+};
+
+Dictionary<Cliente, Dictionary<string, int>> carrinho = new Dictionary<Cliente, Dictionary<string, int>>();
 
 
 void tituloPrograma(string titulo)
@@ -26,6 +25,7 @@ void tituloPrograma(string titulo)
     Console.WriteLine($"{sinalIguais}\n");
 }
 
+
 void ExibirMenudeOpcoes()
 {
     Console.Clear();
@@ -37,7 +37,7 @@ void ExibirMenudeOpcoes()
     Console.WriteLine(" 4. Listar Produtos");
     Console.WriteLine(" 5. Ajustar Preço de Produto");
     Console.WriteLine(" 6. Adicionar Produto ao Carrinho");
-    Console.WriteLine(" 7. Finalizar uma Compra");
+    Console.WriteLine(" 7. Abrir Carrinho");
     Console.WriteLine("-1. Sair");
     Console.Write("\nDigite uma das opções: ");
 
@@ -63,7 +63,7 @@ void ExibirMenudeOpcoes()
             AdicionarProdutoAoCarrinho();
             break;
         case 7:
-            FecharCompra();
+            ListarItensDoCarrinho();
             break;
         case -1:
             Console.WriteLine("\nCOMEX FINALIZADO!");
@@ -78,6 +78,7 @@ void ExibirMenudeOpcoes()
             break;
     }
 }
+
 
 void CadastrarCliente()
 {
@@ -94,9 +95,30 @@ void CadastrarCliente()
     else
     {
         Console.Write("Digite o CPF do cliente: ");
-        int cpf = int.Parse(Console.ReadLine()!);
-        clientes.Add(nome, cpf);
-        Console.WriteLine($"\nCliente {nome} com CPF {cpf} cadastrado com sucesso!");
+        string cpf = Console.ReadLine()!;
+        Console.Write("Digite o email do cliente: ");
+        string email = Console.ReadLine()!;
+        Console.Write("Digite a profissão do cliente: ");
+        string profissao = Console.ReadLine()!;
+        Console.Write("Digite o telefone do cliente: ");
+        string telefone = Console.ReadLine()!;
+        Console.WriteLine("\n--- Endereço ---");
+        Console.Write("Digite a rua: ");
+        string rua = Console.ReadLine()!;
+        Console.Write("Digite o número: ");
+        int numero = int.Parse(Console.ReadLine()!);
+        Console.Write("Digite o bairro: ");
+        string bairro = Console.ReadLine()!;
+        Console.Write("Digite a cidade: ");
+        string cidade = Console.ReadLine()!;
+        Console.Write("Digite o estado: ");
+        string estado = Console.ReadLine()!;
+        Console.Write("Digite o complemento (opcional): ");
+        string complemento = Console.ReadLine()!;
+        Endereco endereco = new Endereco(bairro, cidade, complemento, numero, rua, estado);
+        Cliente cliente = new Cliente(nome, cpf, email, profissao, telefone, endereco);
+        clientes.Add(cliente);
+        Console.WriteLine($"\nCliente {cliente.Nome} cadastrado com sucesso!");
         Thread.Sleep(2000);
         ExibirMenudeOpcoes();
     }
@@ -108,7 +130,7 @@ void ListarClientes()
     tituloPrograma("LISTAGEM DE CLIENTES");
     foreach (var cliente in clientes)
     {
-        Console.WriteLine($"Nome: {cliente.Key} | CPF: {cliente.Value}");
+        Console.WriteLine($"Nome: {cliente.Nome} | CPF: {cliente.Cpf}");
     }
     Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
     Console.ReadKey();
@@ -130,12 +152,15 @@ void CadastrarProduto()
     else
     {
         Console.Write("Digite o preço do produto: ");
-        decimal preco = decimal.Parse(Console.ReadLine()!);
-        produtos.Add(nome, (int)(preco * 100)); // Armazena o preço em centavos para evitar problemas de precisão
+        float preco = float.Parse(Console.ReadLine()!);
+        Console.Write("Digite a Descrição do Produto: ");
+        string descricao = Console.ReadLine()!;
+        Console.Write("Digite a quantidade do produto: ");
+        int quantidade = int.Parse(Console.ReadLine()!);
+        produtos.Add(new Produto(nome, descricao, preco, quantidade)); // Armazena o preço em centavos para evitar problemas de precisão
         Console.WriteLine($"\nProduto {nome} com preço {preco:C} cadastrado com sucesso!");
         Thread.Sleep(2000);
         ExibirMenudeOpcoes();
-
     }
 }
 
@@ -144,27 +169,25 @@ void ListarProdutos()
     Console.Clear();
     tituloPrograma("LISTAGEM DE PRODUTOS");
     foreach (var produto in produtos)
-    {
-        decimal preco = produto.Value / 100m; // Converte de centavos para reais
-        Console.WriteLine($"Nome: {produto.Key} | Preço: {preco:C}");
+    {       
+        Console.WriteLine($"Nome: {produto.Nome} | Preço: {produto.Preco:C} | Quantidade: {produto.Quantidade}");
     }
     Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
     Console.ReadKey();
     ExibirMenudeOpcoes();
 }
-
 void AjustarPrecoProduto()
 {
     Console.Clear();
     tituloPrograma("AJUSTE DE PREÇO DE PRODUTO");
     Console.Write("Digite o nome do produto: ");
     string nome = Console.ReadLine()!;
-
-    if (produtos.ContainsKey(nome))
+    Produto produtoEncontrado = produtos.Find(p => p.Nome.Equals(nome, StringComparison.OrdinalIgnoreCase));
+    if (produtoEncontrado != null)
     {
         Console.Write("Digite o novo preço do produto: ");
-        decimal novoPreco = decimal.Parse(Console.ReadLine()!);
-        produtos[nome] = (int)(novoPreco * 100);
+        float novoPreco = float.Parse(Console.ReadLine()!);
+        produtoEncontrado.Preco = novoPreco;
         Console.WriteLine($"\nPreço do produto {nome} ajustado para {novoPreco:C} com sucesso!");
     }
     else
@@ -173,7 +196,7 @@ void AjustarPrecoProduto()
     }
     Thread.Sleep(2000);
     ExibirMenudeOpcoes();
-}
+} 
 
 void AdicionarProdutoAoCarrinho()
 {
@@ -181,47 +204,44 @@ void AdicionarProdutoAoCarrinho()
     tituloPrograma("ADICIONAR PRODUTO AO CARRINHO");
     Console.Write("Digite qual usuário está realizando a compra: ");
     string usuario = Console.ReadLine()!;
-
-    if (clientes.ContainsKey(usuario))
+    Cliente clienteEncontrado = clientes.Find(c => c.Nome.Equals(usuario, StringComparison.OrdinalIgnoreCase));
+    if (clienteEncontrado != null)
     {
         Console.WriteLine($"\nUsuário {usuario} encontrado! Prosseguindo com a compra...");
-        // Se o usuário ainda não tem um carrinho, cria um novo
-        if (!carrinho.ContainsKey(usuario))
+        if (!carrinho.ContainsKey(clienteEncontrado))
         {
-            carrinho[usuario] = new Dictionary<string, int>();
+            carrinho[clienteEncontrado] = new Dictionary<string, int>();
         }
-
-        // Loop para permitir adicionar vários produtos sem reiniciar a função
         while (true)
         {
             Console.Write("Digite o nome do produto (ou deixe vazio para voltar ao menu): ");
-            string nome = Console.ReadLine()!;
-
-            if (string.IsNullOrWhiteSpace(nome))
+            string nomeProduto = Console.ReadLine()!;
+            if (string.IsNullOrWhiteSpace(nomeProduto))
             {
                 Console.WriteLine("\nNenhum produto informado. Voltando ao menu principal...");
                 break;
             }
-
-            if (produtos.ContainsKey(nome))
+            Produto produtoEncontrado = produtos.Find(p => p.Nome.Equals(nomeProduto, StringComparison.OrdinalIgnoreCase));
+            if (produtoEncontrado != null)
             {
-                // Permite adicionar produtos repetidos: armazena quantidade no carrinho
-                if (carrinho[usuario].ContainsKey(nome))
+                Console.Write("Digite a quantidade: ");
+                int quantidade = int.Parse(Console.ReadLine()!);
+                // Adiciona ou acumula a quantidade do produto no carrinho do cliente
+                if (carrinho[clienteEncontrado].ContainsKey(produtoEncontrado.Nome))
                 {
-                    carrinho[usuario][nome] += 1; // incrementa quantidade
-                    Console.WriteLine($"\nProduto {nome} adicionado novamente. Quantidade atual: {carrinho[usuario][nome]}");
+                    carrinho[clienteEncontrado][produtoEncontrado.Nome] += quantidade;
                 }
                 else
                 {
-                    carrinho[usuario][nome] = 1; // primeira unidade
-                    Console.WriteLine($"\nProduto {nome} adicionado ao carrinho com sucesso!");
+                    carrinho[clienteEncontrado][produtoEncontrado.Nome] = quantidade;
                 }
+
+                Console.WriteLine($"\n{quantidade} unidades do produto {nomeProduto} adicionado ao carrinho com sucesso!");
             }
             else
             {
-                Console.WriteLine($"\nProduto {nome} não encontrado!");
+                Console.WriteLine($"\nProduto {nomeProduto} não encontrado!");
             }
-
             Console.Write("\nDeseja adicionar outro produto para o mesmo usuário? (s/n): ");
             string resposta = Console.ReadLine()!;
             if (string.IsNullOrWhiteSpace(resposta) || resposta.ToLower() != "s")
@@ -239,59 +259,59 @@ void AdicionarProdutoAoCarrinho()
         Thread.Sleep(2000);
         ExibirMenudeOpcoes();
     }
-
-
 }
 
-void FecharCompra()
+void ListarItensDoCarrinho()
 {
     Console.Clear();
-    tituloPrograma("FECHAR COMPRA");
-    if (carrinho.Count == 0)
+    tituloPrograma("LISTAGEM DE ITENS NO CARRINHO");
+
+    Console.Write("Qual cliente deseja visualizar o carrinho? ");
+    string cliente = Console.ReadLine()!;
+    Cliente clienteEncontrado = clientes.Find(c => c.Nome.Equals(cliente, StringComparison.OrdinalIgnoreCase));
+    if (clienteEncontrado != null && carrinho.ContainsKey(clienteEncontrado))
     {
-        Console.WriteLine("Ainda não existem carrinhos cadastrados.");
-    }
-    else
-    {
-        Console.Write("\nDigite o nome do usuário para visualizar seus produtos no carrinho:");
-        string usuario = Console.ReadLine()!;
-        if (carrinho.ContainsKey(usuario))
+        Console.WriteLine($"Usuário: {clienteEncontrado.Nome}");
+        float total = 0f;
+        foreach (var kv in carrinho[clienteEncontrado])
         {
-            Console.WriteLine($"\nUsuário: {usuario}");
-            decimal total = 0m;
-            foreach (var produto in carrinho[usuario])
+            string nomeProduto = kv.Key;
+            int quantidade = kv.Value;
+            Produto prod = produtos.Find(p => p.Nome.Equals(nomeProduto, StringComparison.OrdinalIgnoreCase));
+            decimal precoUnitario = prod != null ? (decimal)prod.Preco : 0m;
+            Console.WriteLine($"  Produto: {nomeProduto} | Preço: {precoUnitario:C} | Quantidade: {quantidade}");
+            float subtotal = (float)precoUnitario * quantidade;
+            total += subtotal;
+        }
+
+        Console.WriteLine($"\nValor Total: {total:C}");
+        Console.Write($"Gostaria de finalizar a compra? (s/n): ");
+        string finalizarCompra = Console.ReadLine()!;
+        if (string.IsNullOrWhiteSpace(finalizarCompra) || finalizarCompra.ToLower() != "s")
+        {
+            Console.WriteLine("\nVoltando ao menu principal...");
+            Thread.Sleep(2000);
+            ExibirMenudeOpcoes();
+        }
+        else
+        {
+            if (total <= 0)
             {
-                int quantidade = produto.Value; // quantidade armazenada no carrinho
-                int precoCents = produtos.ContainsKey(produto.Key) ? produtos[produto.Key] : 0; // busca preço atual em centavos
-                decimal precoUnitario = precoCents / 100m;
-                decimal subtotal = precoUnitario * quantidade;
-                total += subtotal;
-                Console.WriteLine($"  Nome: {produto.Key} | Quantidade: {quantidade} | Preço Unit.: {precoUnitario:C} | Subtotal: {subtotal:C}");
-            }
-            Console.Write("\nTotal: ");
-            Console.WriteLine($"{total:C}\n");
-            Console.Write("Deseja finalizar a compra? (s/n): ");
-            string resposta = Console.ReadLine()!;
-            if (resposta.ToLower() == "s")
-            {
-                if (total <= 0)
-                {
-                    Console.WriteLine("O valor total da compra é inválido, adicione itens ao carrinho.");
-                }
-                else
-                {
-                    Console.Write("Insira o numero do cartão de crédito: ");
-                    string numeroCartao = Console.ReadLine()!;
-                    Console.WriteLine($"Pagamento de {total:C} realizado com sucesso no cartão {numeroCartao}!");
-                    carrinho[usuario].Clear(); // Limpa o carrinho após a compra
-                }
+                Console.WriteLine("O valor total da compra é inválido, adicione itens ao carrinho.");
             }
             else
             {
-                Console.WriteLine("Compra cancelada.");
+                Console.Write("Insira o numero do cartão de crédito: ");
+                string numeroCartao = Console.ReadLine()!;
+                Console.WriteLine($"Pagamento de {total:C} realizado com sucesso no cartão {numeroCartao}!");
+                carrinho[clienteEncontrado].Clear(); // Limpa o carrinho após a compra
             }
         }
 
+    }
+    else
+    {
+        Console.WriteLine($"\nCliente {cliente} não encontrado ou sem itens no carrinho!");
     }
     Console.WriteLine("\nPressione qualquer tecla para voltar ao menu...");
     Console.ReadKey();
